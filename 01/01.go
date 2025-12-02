@@ -1,7 +1,6 @@
 package main
 
 import (
-	_ "embed"
 	"fmt"
 	"strconv"
 
@@ -78,11 +77,6 @@ func leftRotate(currentPoint int, stepCount int) (passCount int, endingPoint int
 	passCount = stepCount / dialSize
 	finalPoint := currentPoint - remainder
 
-	if stepCount == 5 {
-		// Debugging aid
-		_ = finalPoint
-	}
-
 	if finalPoint < 0 {
 		finalPoint = (finalPoint + dialSize)
 		if currentPoint > 0 {
@@ -101,11 +95,6 @@ func rightRotate(currentPoint int, stepCount int) (passCount int, endingPoint in
 	remainder := stepCount % dialSize
 	passCount = stepCount / dialSize
 	finalPoint := currentPoint + remainder
-
-	if stepCount == 60 {
-		// Debugging aid
-		_ = finalPoint
-	}
 
 	if finalPoint >= dialSize {
 		finalPoint = finalPoint % dialSize
