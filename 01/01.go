@@ -18,32 +18,42 @@ type rotateStep struct {
 func main() {
 	var rawManifest = util.ReadLines("./input")
 	var parsedManifest = parseManifest(rawManifest)
-	var zeroCount = processManifest(parsedManifest)
 
-	fmt.Printf("The dial pointed at 0 a total of %d times.\n", zeroCount)
+	passCount, exactCount := processManifest(parsedManifest)
+
+	fmt.Printf("The dial pointed at 0 a total of %d times.\n", exactCount)
+	fmt.Printf("The dial passed by 0 a total of %d times.\n", passCount)
+
 }
 
-func processManifest(manifest []rotateStep) int {
-	zeroCount := 0
+func processManifest(manifest []rotateStep) (passCount int, exactCount int) {
+	passCount, exactCount = 0, 0
 
 	currentPoint := 50
 
 	fmt.Printf("The dial starts by pointing at %d.\n", currentPoint)
 	for index, step := range manifest {
+		var passed int
+		var newPoint int
+
 		if step.direction == 'L' {
-			currentPoint = leftRotate(currentPoint, step.stepCount)
+			passed, newPoint = leftRotate(currentPoint, step.stepCount)
+
 		} else if step.direction == 'R' {
-			currentPoint = rightRotate(currentPoint, step.stepCount)
+			passed, newPoint = rightRotate(currentPoint, step.stepCount)
 		}
+
+		passCount += passed
+		currentPoint = newPoint
 
 		if currentPoint == 0 {
-			zeroCount++
+			exactCount++
 		}
 
-		fmt.Printf("Step %d: The dial is rotated %s %s to point at %s.\n", index+1, string(step.direction), strconv.Itoa(step.stepCount), strconv.Itoa(currentPoint))
+		fmt.Printf("Step %d: The dial is rotated %s %s to point at %s. During its rotation it passed zero: %d times.\n", index+1, string(step.direction), strconv.Itoa(step.stepCount), strconv.Itoa(currentPoint), passed)
 	}
 
-	return zeroCount
+	return passCount, exactCount
 }
 
 func parseManifest(rawManifest []string) []rotateStep {
@@ -63,31 +73,44 @@ func parseManifest(rawManifest []string) []rotateStep {
 	return manifest
 }
 
-func leftRotate(currentPoint int, stepCount int) int {
-	// Rotate left. Ignore rap around for now
-	unModdedPoint := currentPoint - stepCount
+func leftRotate(currentPoint int, stepCount int) (passCount int, endingPoint int) {
+	remainder := stepCount % dialSize
+	passCount = stepCount / dialSize
+	finalPoint := currentPoint - remainder
 
-	// If positive we did not wrap.  Return it
-	if unModdedPoint >= 0 {
-		return unModdedPoint
+	if stepCount == 5 {
+		// Debugging aid
+		_ = finalPoint
 	}
 
-	// We wrapped mod it down to the remainder
-	moddedPoint := -unModdedPoint % dialSize
-
-	// If we modded to 0 return 0
-	if moddedPoint == 0 {
-		return moddedPoint
+	if finalPoint < 0 {
+		finalPoint = (finalPoint + dialSize)
+		if currentPoint > 0 {
+			passCount++
+		}
 	}
 
-	// Remove the remainder from 100 to get the wrapped point
-	return 100 - moddedPoint
+	if finalPoint == 0 && remainder > 0 {
+		passCount++
+	}
 
+	return passCount, finalPoint
 }
 
-func rightRotate(currentPoint int, stepCount int) int {
-	unModdedPoint := currentPoint + stepCount
+func rightRotate(currentPoint int, stepCount int) (passCount int, endingPoint int) {
+	remainder := stepCount % dialSize
+	passCount = stepCount / dialSize
+	finalPoint := currentPoint + remainder
 
-	return unModdedPoint % dialSize
+	if stepCount == 60 {
+		// Debugging aid
+		_ = finalPoint
+	}
 
+	if finalPoint >= dialSize {
+		finalPoint = finalPoint % dialSize
+		passCount++
+	}
+
+	return passCount, finalPoint
 }
