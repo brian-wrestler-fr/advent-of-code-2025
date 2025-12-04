@@ -12,34 +12,42 @@ func main() {
 	processBatteryArrays(batteryArray)
 }
 
-func processBatteryArrays(batteryArray []string) int {
-	outputVoltage := 0
+func processBatteryArrays(batteryArray []string) int64 {
+	var outputVoltage int64 = 0
 
 	for _, battery := range batteryArray {
-		firstDigit := 0
-		secondDigit := 0
+		var digits [12]int
 
-		for i := 0; i < len(battery); i++ {
+		for i := range battery {
 			cellInt, _ := strconv.Atoi(string(battery[i]))
+			cellsLeft := len(battery) - (i + 1)
 
-			if firstDigit < cellInt && i < len(battery)-1 {
-				firstDigit = cellInt
-				secondDigit = 0
-				continue
+			for j := range digits {
+				cellsToFill := 12 - (j + 1)
+				if digits[j] < cellInt && cellsLeft >= cellsToFill {
+					digits[j] = cellInt
+
+					newSlice := make([]int, cellsLeft)
+					if cellsLeft > 0 {
+						copy(digits[j+1:], newSlice)
+					}
+
+					break
+				}
 			}
 
-			if secondDigit < cellInt {
-				secondDigit = cellInt
-			}
 		}
 
-		batteryTotal := firstDigit*10 + secondDigit
+		var batteryTotal int64 = 0
+		for i := 0; i < len(digits); i++ {
+			batteryTotal = batteryTotal*10 + int64(digits[i])
+		}
 
 		fmt.Printf("In %s, largest joltage possible is: %d\n", battery, batteryTotal)
 		outputVoltage += batteryTotal
 	}
 
-	fmt.Printf("Output Voltage: %d", outputVoltage)
+	fmt.Printf("Output Voltage: %d\n", outputVoltage)
 
 	return outputVoltage
 }
